@@ -1,0 +1,241 @@
+{
+  "name": "beginningdb-cloudfs",
+  "displayName": "BeginningDB Cloud Files",
+  "publisher": "beginningdb",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iminds-io/beginningdb-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iminds-io/beginningdb-vscode/issues"
+  },
+  "homepage": "https://github.com/iminds-io/beginningdb-vscode#readme",
+  "packageManager": "pnpm@11.1.1+sha512.d1fdf5f73c617b64fa1a56a81c3c8dfe0e966e33a6010aa256b517ae77be21d93e05affc0de1a83b0e4f29d569f68b446ae8f068cd7247c0bb3df0fb4d7bdf9a",
+  "type": "commonjs",
+  "files": [
+    "dist/**",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "activationEvents": [
+    "onFileSystem:bgdbfs",
+    "onCommand:beginningdb.signIn",
+    "onCommand:beginningdb.signOut",
+    "onCommand:beginningdb.addServer",
+    "onCommand:beginningdb.openCloudFolder",
+    "onCommand:beginningdb.openMirror",
+    "onCommand:beginningdb.syncNow",
+    "onCommand:beginningdb.showSyncLog",
+    "onCommand:beginningdb.uploadToCloud",
+    "onCommand:beginningdb.downloadToLocal",
+    "onCommand:beginningdb.copyTo",
+    "onCommand:beginningdb.moveTo",
+    "onCommand:beginningdb.cancelTransfer",
+    "onCommand:beginningdb.showTransfers",
+    "onView:beginningdb.transfer",
+    "onUri"
+  ],
+  "main": "./dist/extension.js",
+  "browser": "dist/extension.browser.js",
+  "extensionKind": [
+    "ui",
+    "workspace"
+  ],
+  "capabilities": {
+    "virtualWorkspaces": {
+      "supported": "limited",
+      "description": "BeginningDB cloud folders support browsing and editing. Terminal, Git, debugging, tasks, and many language servers require opening as a local mirror."
+    },
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Cloud browsing is available in Restricted Mode. Local mirror sync and command execution require Workspace Trust."
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "beginningdb.addServer",
+        "title": "BeginningDB: Add Server"
+      },
+      {
+        "command": "beginningdb.signIn",
+        "title": "BeginningDB: Sign In"
+      },
+      {
+        "command": "beginningdb.signOut",
+        "title": "BeginningDB: Sign Out"
+      },
+      {
+        "command": "beginningdb.openCloudFolder",
+        "title": "BeginningDB: Open Cloud Folder"
+      },
+      {
+        "command": "beginningdb.openMirror",
+        "title": "BeginningDB: Open Cloud Folder as Local Mirror",
+        "enablement": "beginningdb.mirrorSupported"
+      },
+      {
+        "command": "beginningdb.syncNow",
+        "title": "BeginningDB: Sync Now",
+        "enablement": "beginningdb.mirrorSupported"
+      },
+      {
+        "command": "beginningdb.showSyncLog",
+        "title": "BeginningDB: Show Sync Log",
+        "enablement": "beginningdb.mirrorSupported"
+      },
+      {
+        "command": "beginningdb.uploadToCloud",
+        "title": "BeginningDB: Upload to Cloud"
+      },
+      {
+        "command": "beginningdb.downloadToLocal",
+        "title": "BeginningDB: Download to Local"
+      },
+      {
+        "command": "beginningdb.copyTo",
+        "title": "BeginningDB: Copy to..."
+      },
+      {
+        "command": "beginningdb.moveTo",
+        "title": "BeginningDB: Move to..."
+      },
+      {
+        "command": "beginningdb.cancelTransfer",
+        "title": "BeginningDB: Cancel Transfer"
+      },
+      {
+        "command": "beginningdb.showTransfers",
+        "title": "BeginningDB: Show Transfers"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "beginningdb.uploadToCloud",
+          "when": "resourceScheme == file && beginningdb.runtime == node",
+          "group": "beginningdb@1"
+        },
+        {
+          "command": "beginningdb.downloadToLocal",
+          "when": "resourceScheme == bgdbfs && beginningdb.runtime == node",
+          "group": "beginningdb@2"
+        },
+        {
+          "command": "beginningdb.copyTo",
+          "when": "(resourceScheme == file || resourceScheme == bgdbfs) && beginningdb.runtime == node",
+          "group": "beginningdb@3"
+        },
+        {
+          "command": "beginningdb.moveTo",
+          "when": "(resourceScheme == file || resourceScheme == bgdbfs) && beginningdb.runtime == node",
+          "group": "beginningdb@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "beginningdb.copyTo",
+          "when": "view == beginningdb.transfer && beginningdb.runtime == node",
+          "group": "inline"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "beginningdb.transfer",
+          "name": "MindSpace Files"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "BeginningDB",
+      "properties": {
+        "beginningdb.defaultOpenMode": {
+          "type": "string",
+          "enum": [
+            "mirror",
+            "virtual"
+          ],
+          "default": "mirror"
+        },
+        "beginningdb.bgngPath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional explicit path to the bgng control-plane executable or script."
+        },
+        "beginningdb.credentialsEndpoint": {
+          "type": "string",
+          "default": "",
+          "description": "HTTP endpoint that serves the /fs/credentials contract for the browser extension host."
+        },
+        "beginningdb.credentialsSecret": {
+          "type": "string",
+          "default": "",
+          "description": "Optional bearer secret for desktop broker-backed /fs/credentials requests."
+        },
+        "beginningdb.virtual.maxFileSizeMB": {
+          "type": "number",
+          "default": 50
+        },
+        "beginningdb.sync.pollIntervalSeconds": {
+          "type": "number",
+          "default": 15
+        },
+        "beginningdb.transfer.maxFileSizeMB": {
+          "type": "number",
+          "default": 100,
+          "description": "Maximum size for non-streaming BeginningDB file transfers."
+        },
+        "beginningdb.transfer.warnFileSizeMB": {
+          "type": "number",
+          "default": 25,
+          "description": "File size at which BeginningDB transfers may show a warning."
+        },
+        "beginningdb.transfer.defaultConflictPolicy": {
+          "type": "string",
+          "enum": [
+            "ask",
+            "skip",
+            "overwrite",
+            "rename"
+          ],
+          "default": "ask",
+          "description": "Default conflict policy for BeginningDB local/cloud transfers."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build:node": "node esbuild.mjs --node",
+    "build:web": "node esbuild.mjs --web",
+    "build": "node esbuild.mjs && tsc -p .",
+    "test:bundle": "pnpm run build && node scripts/assert-browser-bundle.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run --config vitest.config.mts",
+    "test:integration": "pnpm run build && vscode-test --config .vscode-test.js",
+    "test:web": "pnpm run build:web && tsc -p . && vscode-test-web --browser=chromium --headless --host=localhost --port=3077 --testRunnerDataDir=/tmp/bgdb-cloudfs-vscode-web-test --extensionDevelopmentPath=. --extensionTestsPath=out/test/web/suite/index.js",
+    "test": "pnpm run typecheck && pnpm run test:unit",
+    "package:vsix": "node scripts/package-vsix.mjs",
+    "verify:vsix": "node scripts/verify-vsix.mjs"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.0",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.100.0",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.0",
+    "@vscode/test-web": "^0.0.81",
+    "@vscode/vsce": "3.9.2",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.0.0"
+  }
+}
