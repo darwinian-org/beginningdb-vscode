@@ -20,7 +20,7 @@ describe('HttpBeginningDbClient', () => {
           version: 7,
           inode_id: 42
         },
-        { etag: 'W/"42:7"' }
+        { etag: '"42:7"' }
       )
     );
 
@@ -34,7 +34,7 @@ describe('HttpBeginningDbClient', () => {
       mtimeMs: 123,
       version: 7,
       inodeId: 42,
-      etag: 'W/"42:7"'
+      etag: '"42:7"'
     });
   });
 
@@ -50,7 +50,7 @@ describe('HttpBeginningDbClient', () => {
             mtime_ms: 123,
             version: 1,
             inode_id: 2,
-            etag: 'W/"2:1"'
+            etag: '"2:1"'
           }
         ]
       })
@@ -65,7 +65,7 @@ describe('HttpBeginningDbClient', () => {
         mtimeMs: 123,
         version: 1,
         inodeId: 2,
-        etag: 'W/"2:1"'
+        etag: '"2:1"'
       }
     ]);
   });
@@ -84,15 +84,49 @@ describe('HttpBeginningDbClient', () => {
     await clientWithToken().writeFile('/docs/a.txt', new TextEncoder().encode('hello'), {
       create: true,
       overwrite: false,
-      ifMatch: 'W/"2:1"'
+      ifMatch: '"opaque,validator:with!symbols"'
     });
 
     const [, init] = fetch.mock.calls[0]!;
     const headers = init?.headers as Headers;
-    expect(headers.get('if-match')).toBe('W/"2:1"');
+    expect(headers.get('if-match')).toBe('"opaque,validator:with!symbols"');
     expect(headers.get('if-none-match')).toBe('*');
     expect(headers.get('authorization')).toBe('Bearer token');
     expect(headers.get('x-tenant-id')).toBe('7');
+  });
+
+  it('maps a full stat-shaped write receipt from BeginningDB', async () => {
+    stubFetch(
+      jsonResponse(
+        {
+          path: '/docs/a.txt',
+          kind: 'file',
+          size: 5,
+          mtime_ms: 1770000000123,
+          version: 8,
+          inode_id: 42,
+          etag: '"42:8"'
+        },
+        { etag: '"42:8"' },
+        200
+      )
+    );
+
+    await expect(
+      clientWithToken().writeFile('/docs/a.txt', new TextEncoder().encode('hello'), {
+        create: false,
+        overwrite: true,
+        ifMatch: '"42:7"'
+      })
+    ).resolves.toEqual({
+      path: '/docs/a.txt',
+      kind: 'file',
+      size: 5,
+      mtimeMs: 1770000000123,
+      version: 8,
+      inodeId: 42,
+      etag: '"42:8"'
+    });
   });
 
   it('sends MOVE destination headers', async () => {
@@ -100,14 +134,14 @@ describe('HttpBeginningDbClient', () => {
 
     await clientWithToken().rename('/docs/a.txt', '/docs/b.txt', {
       overwrite: true,
-      ifMatch: 'W/"2:1"'
+      ifMatch: '"2:1"'
     });
 
     const [, init] = fetch.mock.calls[0]!;
     const headers = init?.headers as Headers;
     expect(init?.method).toBe('MOVE');
     expect(headers.get('destination')).toBe('/v1/fs/docs/b.txt');
-    expect(headers.get('if-match')).toBe('W/"2:1"');
+    expect(headers.get('if-match')).toBe('"2:1"');
   });
 
   it('maps HTTP errors into typed BeginningDB errors', async () => {
@@ -121,7 +155,7 @@ describe('HttpBeginningDbClient', () => {
 
     await expect(clientWithToken().delete('/docs/a.txt', {
       recursive: false,
-      ifMatch: 'W/"2:1"'
+      ifMatch: '"2:1"'
     })).rejects.toMatchObject({
       kind: 'precondition_failed',
       status: 412,
