@@ -236,6 +236,6 @@
     "@vscode/vsce": "3.9.2",
     "esbuild": "^0.25.0",
     "typescript": "^5.4.0",
-    "vitest": "^1.0.0"
+    "vitest": "^3.2.6"
   }
 }
